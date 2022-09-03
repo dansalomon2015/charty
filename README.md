@@ -1,2 +1,3 @@
-# charty
+# Charty
+
 Custom chart components
