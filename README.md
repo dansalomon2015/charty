@@ -1,6 +1,11 @@
 # Charty
 
-Custom chart components
+Custom chart components for React Native App
+
+## Dependencies
+
+-   react-native-linear-gradient
+-   react-native-svg
 
 ## ScreenShots
 
@@ -11,3 +16,22 @@ Custom chart components
 ### Android
 
 ![Screenshot](https://res.cloudinary.com/dpuietmcx/image/upload/c_scale,w_274/v1664477851/Screenshot_1664477827_zsxfxr.png)
+
+## Commands
+
+#### `yarn install`
+
+#### `npx react-native link`
+
+#### `npx pod-install`
+
+#### `yarn android` to run Android
+
+#### `yarn ios` to run on iOS
+
+## To Do
+
+-   Write the README / docs
+-   Add docs to actual page
+
+## License: MIT
