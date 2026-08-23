@@ -38,13 +38,13 @@ jobs:
         run: git check-ref-format --branch "$RELEASE_BRANCH"
 
       - name: Check out release branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch }}
           fetch-depth: 0
 
       - name: Set up Node.js and npm registry
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
