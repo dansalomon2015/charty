@@ -1,5 +1,2 @@
-export * from "./PieChart";
-export * from "./Text.styled";
-export * from "./TextBold.styled";
-export * from "./TextMedium.styled";
-export * from "./BarChart";
+export { BarChart, type BarChartProps } from './BarChart';
+export { DonutChart, PieChart, type DonutChartProps } from './DonutChart';
