@@ -1,5 +1,10 @@
 # Charty
 
+[![npm version](https://img.shields.io/npm/v/@dansalomon/charty.svg)](https://www.npmjs.com/package/@dansalomon/charty)
+[![npm downloads](https://img.shields.io/npm/dm/@dansalomon/charty.svg)](https://www.npmjs.com/package/@dansalomon/charty)
+[![CI](https://github.com/dansalomon2015/charty/actions/workflows/ci.yml/badge.svg)](https://github.com/dansalomon2015/charty/actions/workflows/ci.yml)
+[![MIT license](https://img.shields.io/npm/l/@dansalomon/charty.svg)](./LICENSE)
+
 Accessible, responsive charts for financial React Native and Expo apps.
 
 Charty is deliberately small. It focuses on polished budget and allocation
@@ -9,7 +14,8 @@ Charty is **React Native first**. iOS and Android through React Native or Expo
 are the primary supported targets. React Native Web compatibility is maintained
 as a convenience for documentation and browser-based previews.
 
-> Current release: `0.1.1`. The API may evolve before version 1.0.
+> The API may evolve before version 1.0. See the
+> [changelog](./CHANGELOG.md) for release details.
 
 ## Preview
 
@@ -27,6 +33,7 @@ components bundled for iOS and Android.
 - VoiceOver and TalkBack labels for every data point
 - Empty and invalid data handling
 - Theme, color, number, and currency customization
+- Controlled single and opt-in long-press multiple selection
 - React Native CLI and Expo compatibility through `react-native-svg`
 
 ## Installation
@@ -70,6 +77,61 @@ export function MonthlyBudget() {
   );
 }
 ```
+
+## Controlled selection
+
+`BarChart` does not own the selected values. Pass `selectedIndices` and update
+them from `onSelectionChange`. In the default `single` behavior, pressing the
+selected bar again clears the selection:
+
+```tsx
+const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+
+<BarChart
+  data={months}
+  selectedIndices={selectedIndices}
+  onSelectionChange={setSelectedIndices}
+/>
+```
+
+Multiple selection is opt-in. A long press on React Native or touch devices,
+`Ctrl + click` on Windows/Linux, or `Command + click` on macOS starts a multiple
+selection with the pressed bar. Subsequent presses add or remove bars. Removing
+the final bar returns the chart to normal single-selection behavior:
+
+```tsx
+const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+
+<BarChart
+  data={months}
+  selectionBehavior="multiple"
+  selectedIndices={selectedIndices}
+  onSelectionChange={(indices, event) => {
+    setSelectedIndices(indices);
+    console.log(event.type, event.index, event.multiple);
+  }}
+/>
+```
+
+`selectedIndices` takes precedence when both it and the legacy
+`selectedIndex` prop are supplied. `selectedIndex` and `onBarPress` remain
+supported for backwards compatibility.
+
+### Selection API
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `selectionBehavior` | `'single' \| 'multiple'` | `'single'` | Enables native/touch long press and web modifier-click multiple selection. |
+| `selectedIndices` | `readonly number[]` | `[]` | Controlled indices rendered as selected. |
+| `onSelectionChange` | `(indices, event) => void` | — | Receives the next controlled selection and interaction metadata. |
+| `selectedIndex` | `number` | — | Backwards-compatible single selected index. |
+| `onBarPress` | `(datum, index) => void` | — | Backwards-compatible raw press callback. |
+
+The `event` argument contains the interaction `type` (`press`, `longPress`, or
+`modifierPress`), the affected `index`, and `multiple`, which reports whether
+the chart remains in multiple-selection mode after the transition. Data
+aggregation and coordination with other charts remain the responsibility of
+the consuming application.
 
 ## Spending donut
 
@@ -142,6 +204,9 @@ export function SpendingDashboard() {
 ```
 
 The complete interaction is available in the [`example`](./example) Expo app.
+The example enables long-press multiple selection and aggregates every selected
+month into the `DonutChart` data passed by the application. When the selection
+is empty, it removes the filter and shows the aggregate for all months.
 
 ## Development
 
@@ -151,12 +216,16 @@ npm run verify
 ```
 
 The Expo app in [`example`](./example) demonstrates both charts with responsive
-cards and localized currency formatting.
+cards, localized currency formatting, and single or multiple controlled
+selection.
 
 ## Contributing
 
 Bug reports and focused pull requests are welcome. Read
 [`CONTRIBUTING.md`](./CONTRIBUTING.md) before proposing a new chart type.
+Participation is governed by the [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md),
+and vulnerabilities should follow the private process in
+[`SECURITY.md`](./SECURITY.md).
 
 ## License
 

@@ -5,11 +5,27 @@ Thanks for helping make financial charts easier to use in React Native apps.
 ## Development
 
 1. Fork and clone the repository.
-2. Install dependencies with `npm install`.
-3. Run `npm run verify` before opening a pull request.
+2. Create a focused branch from `main`.
+3. Install dependencies with `npm ci`.
+4. Make the change and add tests for new behavior.
+5. Run `npm run verify` before opening a pull request.
 
 Keep pull requests focused. New chart types should start with an issue that
 describes the user need, accessibility behavior, and proposed API.
+
+Public API changes must include TypeScript types and README documentation.
+Behavior that differs between React Native and React Native Web must be called
+out explicitly. By participating, you agree to follow the
+[`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
+
+## Pull requests
+
+- Link the related issue when one exists.
+- Explain how the change was verified.
+- Preserve backwards compatibility unless the issue explicitly proposes a
+  breaking change.
+- Do not include unrelated formatting or generated files.
+- Expect maintainers to request changes before merging.
 
 ## Releasing
 
