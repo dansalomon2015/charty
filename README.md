@@ -12,6 +12,15 @@ as a convenience for documentation and browser-based previews.
 > Charty is being prepared for its first public npm release. The API may change
 > before version 1.0.
 
+## Preview
+
+These screenshots come from the local Expo example used to validate the same
+components bundled for iOS and Android.
+
+| Overview | Selected month |
+| :---: | :---: |
+| ![Charty overview showing a monthly budget bar chart and a spending donut](./docs/images/charty-overview.jpg) | ![Charty bar chart with April selected](./docs/images/charty-selected-month.jpg) |
+
 ## Features
 
 - Responsive layouts that use the width of their container
