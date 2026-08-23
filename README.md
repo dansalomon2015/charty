@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./docs/images/charty-logo.png" alt="Charty logo" width="180" />
+</p>
+
 # Charty
 
 [![npm version](https://img.shields.io/npm/v/@dansalomon/charty.svg)](https://www.npmjs.com/package/@dansalomon/charty)
