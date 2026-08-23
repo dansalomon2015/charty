@@ -9,17 +9,16 @@ Charty is **React Native first**. iOS and Android through React Native or Expo
 are the primary supported targets. React Native Web compatibility is maintained
 as a convenience for documentation and browser-based previews.
 
-> Charty is being prepared for its first public npm release. The API may change
-> before version 1.0.
+> Current release: `0.1.1`. The API may evolve before version 1.0.
 
 ## Preview
 
 These screenshots come from the local Expo example used to validate the same
 components bundled for iOS and Android.
 
-| Overview | Selected month |
+| January selected | April selected |
 | :---: | :---: |
-| ![Charty overview showing a monthly budget bar chart and a spending donut](./docs/images/charty-overview.jpg) | ![Charty bar chart with April selected](./docs/images/charty-selected-month.jpg) |
+| ![Charty example with January selected and its spending breakdown](https://unpkg.com/@dansalomon/charty@latest/docs/images/charty-overview.jpg) | ![Charty example with April selected and its spending breakdown](https://unpkg.com/@dansalomon/charty@latest/docs/images/charty-selected-month.jpg) |
 
 ## Features
 
@@ -93,6 +92,56 @@ export function SpendingBreakdown() {
 
 `PieChart` remains available as a deprecated alias for the previous prototype.
 New code should use `DonutChart`.
+
+## Coordinating charts
+
+The charts are independent components. Your application owns the selected
+month and passes the matching breakdown to `DonutChart`:
+
+```tsx
+import { useState } from 'react';
+import { BarChart, DonutChart } from '@dansalomon/charty';
+
+const months = [
+  {
+    label: 'Jan',
+    value: 42_000,
+    breakdown: [
+      { label: 'Housing', value: 21_000, color: '#0F6564' },
+      { label: 'Food', value: 8_400, color: '#FD7119' },
+    ],
+  },
+  {
+    label: 'Apr',
+    value: 59_000,
+    breakdown: [
+      { label: 'Housing', value: 30_000, color: '#0F6564' },
+      { label: 'Food', value: 10_600, color: '#FD7119' },
+    ],
+  },
+];
+
+export function SpendingDashboard() {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const selectedMonth = months[selectedIndex];
+
+  return (
+    <>
+      <BarChart
+        data={months}
+        selectedIndex={selectedIndex}
+        onBarPress={(_, index) => setSelectedIndex(index)}
+      />
+      <DonutChart
+        accessibilityLabel={`Spending breakdown for ${selectedMonth.label}`}
+        data={selectedMonth.breakdown}
+      />
+    </>
+  );
+}
+```
+
+The complete interaction is available in the [`example`](./example) Expo app.
 
 ## Development
 

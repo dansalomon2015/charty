@@ -1,6 +1,6 @@
 {
   "name": "@dansalomon/charty",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Accessible, responsive charts for financial React Native and Expo apps.",
   "keywords": ["react-native", "expo", "charts", "data-visualization", "finance", "accessibility"],
   "homepage": "https://github.com/dansalomon2015/charty#readme",
@@ -22,7 +22,7 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["lib", "src", "LICENSE", "README.md"],
+  "files": ["lib", "src", "docs/images", "LICENSE", "README.md"],
   "sideEffects": false,
   "scripts": {
     "build": "bob build",
