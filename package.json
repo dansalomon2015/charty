@@ -1,11 +1,23 @@
 {
   "name": "@dansalomon/charty",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Accessible, responsive charts for financial React Native and Expo apps.",
-  "keywords": ["react-native", "expo", "charts", "data-visualization", "finance", "accessibility"],
+  "keywords": [
+    "react-native",
+    "expo",
+    "charts",
+    "data-visualization",
+    "finance",
+    "accessibility"
+  ],
   "homepage": "https://github.com/dansalomon2015/charty#readme",
-  "bugs": { "url": "https://github.com/dansalomon2015/charty/issues" },
-  "repository": { "type": "git", "url": "git+https://github.com/dansalomon2015/charty.git" },
+  "bugs": {
+    "url": "https://github.com/dansalomon2015/charty/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dansalomon2015/charty.git"
+  },
   "license": "MIT",
   "author": "Dan Salomon",
   "source": "./src/index.ts",
@@ -22,7 +34,13 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["lib", "src", "docs/images", "LICENSE", "README.md"],
+  "files": [
+    "lib",
+    "src",
+    "docs/images",
+    "LICENSE",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "bob build",
@@ -53,9 +71,28 @@
     "source": "src",
     "output": "lib",
     "exclude": "**/*.test.*",
-    "targets": [["module", { "esm": true }], ["typescript", { "project": "tsconfig.build.json" }]]
+    "targets": [
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
   },
-  "engines": { "node": ">=20" },
-  "publishConfig": { "access": "public" },
-  "workspaces": ["example"]
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "workspaces": [
+    "example"
+  ]
 }
