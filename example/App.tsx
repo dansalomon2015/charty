@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BarChart, DonutChart } from '@dansalomon/charty';
+import {
+  aggregateBreakdowns,
+  monthlyData,
+  resolveSelectionIndices,
+} from './data';
 
 const currency = new Intl.NumberFormat('en-US', {
   currency: 'USD',
@@ -8,37 +13,18 @@ const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
 });
 
-const categories = [
-  { label: 'Housing', color: '#0F6564' },
-  { label: 'Food', color: '#FD7119' },
-  { label: 'Transport', color: '#5A88FF' },
-  { label: 'Leisure', color: '#FC6AFF' },
-] as const;
-
-type SpendingShares = readonly [number, number, number, number];
-
-function createBreakdown(total: number, shares: SpendingShares) {
-  let allocated = 0;
-
-  return categories.map((category, index) => {
-    const value = index === categories.length - 1 ? total - allocated : Math.round(total * shares[index]);
-    allocated += value;
-    return { ...category, value };
-  });
-}
-
-const monthlyData = [
-  { label: 'Jan', value: 42_000, breakdown: createBreakdown(42_000, [0.45, 0.23, 0.12, 0.2]) },
-  { label: 'Feb', value: 39_000, breakdown: createBreakdown(39_000, [0.42, 0.25, 0.13, 0.2]) },
-  { label: 'Mar', value: 54_500, breakdown: createBreakdown(54_500, [0.48, 0.18, 0.14, 0.2]) },
-  { label: 'Apr', value: 59_000, breakdown: createBreakdown(59_000, [0.51, 0.19, 0.11, 0.19]) },
-  { label: 'May', value: 55_000, breakdown: createBreakdown(55_000, [0.46, 0.21, 0.15, 0.18]) },
-  { label: 'Jun', value: 34_000, breakdown: createBreakdown(34_000, [0.44, 0.24, 0.17, 0.15]) },
-];
-
 export default function App() {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedMonth = monthlyData[selectedIndex];
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([0]);
+  const effectiveIndices = resolveSelectionIndices(selectedIndices);
+  const selectedMonths = effectiveIndices
+    .map((index) => monthlyData[index])
+    .filter((month): month is (typeof monthlyData)[number] => month !== undefined);
+  const selectionLabel =
+    selectedIndices.length === 0
+      ? 'All months'
+      : selectedMonths.map(({ label }) => label).join(' + ');
+  const selectedTotal = selectedMonths.reduce((total, month) => total + month.value, 0);
+  const selectedBreakdown = aggregateBreakdowns(effectiveIndices);
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -48,25 +34,30 @@ export default function App() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Monthly spending</Text>
-          <Text style={styles.cardCaption}>Tap a bar to update the spending breakdown.</Text>
+          <Text style={styles.cardCaption}>
+            Long press on touch, or use Ctrl/Command + click on web, to start multiple selection.
+          </Text>
           <BarChart
             accessibilityLabel="Monthly spending compared with a fifty thousand dollar budget"
             data={monthlyData}
             formatValue={currency.format}
-            onBarPress={(_, index) => setSelectedIndex(index)}
+            onSelectionChange={setSelectedIndices}
             referenceLine={{ label: 'Budget', value: 50_000 }}
-            selectedIndex={selectedIndex}
+            selectedIndices={selectedIndices}
+            selectionBehavior="multiple"
           />
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Spending breakdown · {selectedMonth.label}</Text>
+          <Text testID="breakdown-title" style={styles.cardTitle}>
+            Spending breakdown · {selectionLabel}
+          </Text>
           <Text style={styles.cardCaption}>
-            {currency.format(selectedMonth.value)} total. Percentages and values are available to screen readers.
+            {currency.format(selectedTotal)} total. Percentages and values are available to screen readers.
           </Text>
           <DonutChart
-            accessibilityLabel={`Spending breakdown for ${selectedMonth.label}`}
-            data={selectedMonth.breakdown}
+            accessibilityLabel={`Spending breakdown for ${selectionLabel}`}
+            data={selectedBreakdown}
             formatValue={currency.format}
             style={styles.donut}
           />
