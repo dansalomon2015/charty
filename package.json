@@ -38,6 +38,7 @@
     "lib",
     "src",
     "docs/images",
+    "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],

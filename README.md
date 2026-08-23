@@ -1,5 +1,10 @@
 # Charty
 
+[![npm version](https://img.shields.io/npm/v/@dansalomon/charty.svg)](https://www.npmjs.com/package/@dansalomon/charty)
+[![npm downloads](https://img.shields.io/npm/dm/@dansalomon/charty.svg)](https://www.npmjs.com/package/@dansalomon/charty)
+[![CI](https://github.com/dansalomon2015/charty/actions/workflows/ci.yml/badge.svg)](https://github.com/dansalomon2015/charty/actions/workflows/ci.yml)
+[![MIT license](https://img.shields.io/npm/l/@dansalomon/charty.svg)](./LICENSE)
+
 Accessible, responsive charts for financial React Native and Expo apps.
 
 Charty is deliberately small. It focuses on polished budget and allocation
@@ -9,7 +14,8 @@ Charty is **React Native first**. iOS and Android through React Native or Expo
 are the primary supported targets. React Native Web compatibility is maintained
 as a convenience for documentation and browser-based previews.
 
-> Current release: `0.1.1`. The API may evolve before version 1.0.
+> The API may evolve before version 1.0. See the
+> [changelog](./CHANGELOG.md) for release details.
 
 ## Preview
 
@@ -217,6 +223,9 @@ selection.
 
 Bug reports and focused pull requests are welcome. Read
 [`CONTRIBUTING.md`](./CONTRIBUTING.md) before proposing a new chart type.
+Participation is governed by the [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md),
+and vulnerabilities should follow the private process in
+[`SECURITY.md`](./SECURITY.md).
 
 ## License
 

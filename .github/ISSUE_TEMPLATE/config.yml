@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/dansalomon2015/charty/security/advisories/new
+    about: Report vulnerabilities privately instead of opening a public issue.
