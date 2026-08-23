@@ -1,0 +1,117 @@
+name: Release
+
+run-name: ${{ inputs.release_type }} release from ${{ inputs.branch }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to release
+        required: true
+        default: main
+        type: string
+      release_type:
+        description: Version increment
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        env:
+          RELEASE_BRANCH: ${{ inputs.branch }}
+        run: git check-ref-format --branch "$RELEASE_BRANCH"
+
+      - name: Check out release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+
+      - name: Set up Node.js and npm registry
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Use an OIDC-compatible npm version
+        run: npm install --global "npm@^11.5.1"
+
+      - name: Check published version
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_name=$(node -p "require('./package.json').name")
+          local_version=$(node -p "require('./package.json').version")
+          published_version=$(npm view "$package_name" version)
+
+          if [[ "$local_version" != "$published_version" ]]; then
+            echo "Local version $local_version does not match npm latest $published_version."
+            echo "Merge or rebase the latest release before starting another one."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Increment version
+        id: version
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          npm version "$RELEASE_TYPE" -m "chore(release): v%s"
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Verify release package
+        run: npm run verify
+
+      - name: Publish to npm
+        run: npm publish --access public
+
+      - name: Push version commit and tag
+        env:
+          RELEASE_BRANCH: ${{ inputs.branch }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push --atomic origin \
+            "HEAD:refs/heads/$RELEASE_BRANCH" \
+            "refs/tags/v$VERSION"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: >-
+          gh release create "v$VERSION"
+          --verify-tag
+          --generate-notes
+          --title "v$VERSION"
+
+      - name: Add release summary
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          echo "### Charty v$VERSION released" >> "$GITHUB_STEP_SUMMARY"
+          echo "Published to npm and created GitHub tag and release." >> "$GITHUB_STEP_SUMMARY"
