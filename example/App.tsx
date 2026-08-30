@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { BarChart, DonutChart } from '@dansalomon/charty';
+import {
+  BarChart,
+  DonutChart,
+  LineChart,
+  darkChartTheme,
+} from '@dansalomon/charty';
 import {
   aggregateBreakdowns,
   monthlyData,
@@ -31,6 +36,23 @@ export default function App() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.eyebrow}>CHARTY EXAMPLE</Text>
         <Text style={styles.title}>A clear view of your money.</Text>
+
+        <View style={[styles.card, styles.darkCard]}>
+          <Text style={[styles.cardTitle, styles.darkCardTitle]}>Spending trend</Text>
+          <Text style={[styles.cardCaption, styles.darkCardCaption]}>
+            The line chart shares the controlled month selection with the charts below.
+          </Text>
+          <LineChart
+            accessibilityLabel="Monthly spending trend"
+            data={monthlyData}
+            formatValue={currency.format}
+            lineGradient={{ startColor: '#4FD1DA', endColor: '#7EA6FF' }}
+            onSelectionChange={setSelectedIndices}
+            selectedIndices={selectedIndices}
+            selectionBehavior="multiple"
+            theme={darkChartTheme}
+          />
+        </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Monthly spending</Text>
@@ -85,6 +107,15 @@ const styles = StyleSheet.create({
     color: '#183C3B',
     fontSize: 18,
     fontWeight: '700',
+  },
+  darkCard: {
+    backgroundColor: '#17343D',
+  },
+  darkCardCaption: {
+    color: '#AFC5C9',
+  },
+  darkCardTitle: {
+    color: '#F3FAFA',
   },
   content: {
     padding: 20,
