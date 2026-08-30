@@ -59,7 +59,6 @@ describe('chart DOM accessibility', () => {
             { label: 'Housing', value: 60 },
             { label: 'Food', value: 40 },
           ]}
-          width={320}
         />
       </main>
     );
