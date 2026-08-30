@@ -14,6 +14,8 @@ export type {
   ChartTheme,
   DonutCenterContent,
   DonutCenterRenderProps,
+  ProgressRingCenterContent,
+  ProgressRingCenterRenderProps,
   ReferenceLine,
   SharedChartProps,
   ValueFormatter,

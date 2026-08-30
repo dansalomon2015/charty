@@ -5,6 +5,7 @@ import {
   BarChart,
   DonutChart,
   LineChart,
+  ProgressRing,
   darkChartTheme,
 } from '@dansalomon/charty';
 import {
@@ -75,6 +76,23 @@ export default function App() {
             onSelectionChange={setSelectedIndices}
             selectedIndices={selectedIndices}
             selectionBehavior="multiple"
+          />
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Emergency fund</Text>
+          <Text style={styles.cardCaption}>
+            Progress toward a $50,000 safety target.
+          </Text>
+          <ProgressRing
+            accessibilityLabel="Emergency fund progress"
+            color="#FD7119"
+            formatValue={currency.format}
+            label="Funded"
+            max={50_000}
+            size={190}
+            style={styles.progressRing}
+            value={36_000}
           />
         </View>
 
@@ -154,6 +172,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1.4,
+  },
+  progressRing: {
+    marginTop: 8,
+    width: '100%',
   },
   screen: {
     backgroundColor: '#F0F7F7',

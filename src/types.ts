@@ -21,6 +21,10 @@ export interface ChartTheme {
   lineColor?: string;
   /** Defaults to lineColor when omitted. */
   pointColor?: string;
+  /** Defaults to barColor when omitted. */
+  ringColor?: string;
+  /** Defaults to gridColor when omitted. */
+  ringTrackColor?: string;
 }
 
 export interface ChartGradient {
@@ -64,3 +68,16 @@ export interface DonutCenterRenderProps {
 }
 
 export type DonutCenterContent = ReactNode | ((props: DonutCenterRenderProps) => ReactNode);
+
+export interface ProgressRingCenterRenderProps {
+  value: number;
+  max: number;
+  progress: number;
+  formattedValue: string;
+  formattedMax: string;
+  formattedProgress: string;
+}
+
+export type ProgressRingCenterContent =
+  | ReactNode
+  | ((props: ProgressRingCenterRenderProps) => ReactNode);

@@ -13,6 +13,8 @@ export const lightChartTheme: ResolvedChartTheme = {
   donutColors: ['#0F6564', '#14B2C0', '#FD7119', '#FFC122', '#5A88FF', '#FC6AFF'],
   lineColor: '#14B2C0',
   pointColor: '#0F6564',
+  ringColor: '#14B2C0',
+  ringTrackColor: '#DCEAEC',
 };
 
 export const darkChartTheme: ResolvedChartTheme = {
@@ -26,6 +28,8 @@ export const darkChartTheme: ResolvedChartTheme = {
   donutColors: ['#4FD1DA', '#FF9A56', '#7EA6FF', '#FFD164', '#ED8BFF', '#6DD7A8'],
   lineColor: '#4FD1DA',
   pointColor: '#F3FAFA',
+  ringColor: '#4FD1DA',
+  ringTrackColor: '#31515A',
 };
 
 /** Backwards-compatible name for the default light theme. */
@@ -48,5 +52,8 @@ export const resolveTheme = (theme?: Partial<ChartTheme>): ResolvedChartTheme =>
     lineColor: theme?.lineColor ?? theme?.barColor ?? merged.lineColor,
     pointColor:
       theme?.pointColor ?? theme?.lineColor ?? theme?.barColor ?? merged.pointColor,
+    ringColor: theme?.ringColor ?? theme?.barColor ?? merged.ringColor,
+    ringTrackColor:
+      theme?.ringTrackColor ?? theme?.gridColor ?? merged.ringTrackColor,
   };
 };

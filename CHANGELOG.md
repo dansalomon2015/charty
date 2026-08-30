@@ -11,6 +11,8 @@ All notable changes to Charty are documented here. The project follows
   selection.
 - Responsive `AreaChart` with solid or vertical gradient fills and the same
   controlled selection API.
+- Accessible `ProgressRing` for bounded goals with theme colors, customizable
+  center content, and safe handling of invalid values.
 - Optional horizontal line gradients and point customization.
 - Exported light and dark theme presets through `chartThemes`,
   `lightChartTheme`, and `darkChartTheme`.
