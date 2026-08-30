@@ -3,6 +3,22 @@
 All notable changes to Charty are documented here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- Responsive and accessible `LineChart` with controlled single or multiple
+  selection.
+- Optional horizontal line gradients and point customization.
+- Exported light and dark theme presets through `chartThemes`,
+  `lightChartTheme`, and `darkChartTheme`.
+- Shared cartesian layout primitives for future chart types.
+
+### Changed
+
+- Chart selection types and transitions are now reusable across cartesian
+  charts while the existing `BarChart` names remain compatible.
+
 ## [0.2.0] - 2026-08-23
 
 ### Added

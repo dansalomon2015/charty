@@ -2,7 +2,7 @@
   <img src="./docs/images/charty-logo.png" alt="Charty logo" width="180" />
 </p>
 
-# Charty
+# Charty for React Native
 
 [![npm version](https://img.shields.io/npm/v/@dansalomon/charty.svg)](https://www.npmjs.com/package/@dansalomon/charty)
 [![npm downloads](https://img.shields.io/npm/dm/@dansalomon/charty.svg)](https://www.npmjs.com/package/@dansalomon/charty)
@@ -18,6 +18,9 @@ Charty is **React Native first**. iOS and Android through React Native or Expo
 are the primary supported targets. React Native Web compatibility is maintained
 as a convenience for documentation and browser-based previews.
 
+> This open-source library is not affiliated with the independent
+> [Charty for Shortcuts](https://chartyios.app/) iOS application.
+
 > The API may evolve before version 1.0. See the
 > [changelog](./CHANGELOG.md) for release details.
 
@@ -25,6 +28,10 @@ as a convenience for documentation and browser-based previews.
 
 These screenshots come from the local Expo example used to validate the same
 components bundled for iOS and Android.
+
+<p align="center">
+  <img src="./docs/images/charty-line-chart.png" alt="Charty React Native gallery with a dark gradient line chart, bar chart, and coordinated spending breakdown" width="430" />
+</p>
 
 | January selected | April selected |
 | :---: | :---: |
@@ -37,6 +44,8 @@ components bundled for iOS and Android.
 - VoiceOver and TalkBack labels for every data point
 - Empty and invalid data handling
 - Theme, color, number, and currency customization
+- Built-in light and dark themes
+- Optional line gradients
 - Controlled single and opt-in long-press multiple selection
 - React Native CLI and Expo compatibility through `react-native-svg`
 
@@ -84,9 +93,9 @@ export function MonthlyBudget() {
 
 ## Controlled selection
 
-`BarChart` does not own the selected values. Pass `selectedIndices` and update
-them from `onSelectionChange`. In the default `single` behavior, pressing the
-selected bar again clears the selection:
+`BarChart` and `LineChart` do not own the selected values. Pass
+`selectedIndices` and update them from `onSelectionChange`. In the default
+`single` behavior, pressing the selected value again clears the selection:
 
 ```tsx
 const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
@@ -130,6 +139,7 @@ supported for backwards compatibility.
 | `onSelectionChange` | `(indices, event) => void` | — | Receives the next controlled selection and interaction metadata. |
 | `selectedIndex` | `number` | — | Backwards-compatible single selected index. |
 | `onBarPress` | `(datum, index) => void` | — | Backwards-compatible raw press callback. |
+| `onPointPress` | `(datum, index) => void` | — | Raw `LineChart` point press callback. |
 
 The `event` argument contains the interaction `type` (`press`, `longPress`, or
 `modifierPress`), the affected `index`, and `multiple`, which reports whether
@@ -158,6 +168,63 @@ export function SpendingBreakdown() {
 
 `PieChart` remains available as a deprecated alias for the previous prototype.
 New code should use `DonutChart`.
+
+## Line chart
+
+`LineChart` uses the same controlled selection model as `BarChart`, so multiple
+charts can coordinate through one application-owned array of indices:
+
+```tsx
+import {
+  LineChart,
+  darkChartTheme,
+} from '@dansalomon/charty';
+
+<LineChart
+  accessibilityLabel="Monthly spending trend"
+  data={months}
+  formatValue={currency.format}
+  lineGradient={{ startColor: '#4FD1DA', endColor: '#7EA6FF' }}
+  onSelectionChange={setSelectedIndices}
+  selectedIndices={selectedIndices}
+  selectionBehavior="multiple"
+  theme={darkChartTheme}
+/>
+```
+
+Use `chartThemes.light` and `chartThemes.dark`, or pass a partial custom
+`theme`. Existing `defaultChartTheme` imports continue to resolve to the light
+theme.
+
+### Line chart API
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | `readonly ChartDatum[]` | — | Ordered values connected from left to right. |
+| `height` | `number` | `240` | Chart height in logical pixels. |
+| `strokeWidth` | `number` | `3` | Width of the connecting line. |
+| `showPoints` | `boolean` | `true` | Shows a marker for every value. |
+| `pointRadius` | `number` | `4` | Radius of unselected point markers. |
+| `lineColor` | `string` | Theme value | Overrides the theme line color. |
+| `lineGradient` | `ChartGradient` | — | Applies a horizontal start-to-end color gradient. |
+| `referenceLine` | `ReferenceLine` | — | Adds a labelled comparison line. |
+
+## Themes
+
+The presets are ordinary theme objects and can be extended without replacing
+every color:
+
+```tsx
+import { BarChart, chartThemes } from '@dansalomon/charty';
+
+<BarChart
+  data={months}
+  theme={{
+    ...chartThemes.dark,
+    selectedColor: '#FFD164',
+  }}
+/>
+```
 
 ## Coordinating charts
 
@@ -219,7 +286,7 @@ npm install
 npm run verify
 ```
 
-The Expo app in [`example`](./example) demonstrates both charts with responsive
+The Expo app in [`example`](./example) demonstrates all three charts with responsive
 cards, localized currency formatting, and single or multiple controlled
 selection.
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getBarSelectionTransition,
+  getSelectionTransition,
   hasMultipleSelectionModifier,
 } from '../src/utils/selection';
 
@@ -57,5 +58,12 @@ describe('bar chart selection', () => {
     expect(hasMultipleSelectionModifier({ ctrlKey: true })).toBe(true);
     expect(hasMultipleSelectionModifier({ nativeEvent: { metaKey: true } })).toBe(true);
     expect(hasMultipleSelectionModifier({ nativeEvent: {} })).toBe(false);
+  });
+
+  it('keeps the backwards-compatible bar helper aligned with generic charts', () => {
+    const input = [[1], 2, 'multiple', true, 'press'] as const;
+    expect(getBarSelectionTransition(...input)).toEqual(
+      getSelectionTransition(...input)
+    );
   });
 });

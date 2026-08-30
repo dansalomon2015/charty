@@ -17,6 +17,29 @@ export interface ChartTheme {
   valueColor: string;
   referenceLineColor: string;
   donutColors: readonly string[];
+  /** Defaults to barColor when omitted. */
+  lineColor?: string;
+  /** Defaults to lineColor when omitted. */
+  pointColor?: string;
+}
+
+export interface ChartGradient {
+  startColor: string;
+  endColor: string;
+  startOpacity?: number;
+  endOpacity?: number;
+}
+
+export type ChartSelectionBehavior = 'single' | 'multiple';
+export type ChartSelectionInteraction = 'press' | 'longPress' | 'modifierPress';
+
+export interface ChartSelectionEvent {
+  /** Gesture that produced the selection transition. */
+  type: ChartSelectionInteraction;
+  /** Data index targeted by the gesture. */
+  index: number;
+  /** Whether multiple-selection mode remains active after the transition. */
+  multiple: boolean;
 }
 
 export interface ReferenceLine {
