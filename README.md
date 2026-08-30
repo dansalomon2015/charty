@@ -92,6 +92,22 @@ export function MonthlyBudget() {
 }
 ```
 
+### Bar chart API
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | `readonly ChartDatum[]` | — | Values rendered from left to right. |
+| `width` | `number` | Container width | Uses a fixed chart width instead of measuring its container. |
+| `height` | `number` | `240` | Chart height in logical pixels. |
+| `barWidth` | `number` | `32` | Preferred bar width, constrained to fit each available slot. |
+| `fontScale` | `number` | System setting | Overrides SVG label scaling, clamped from 1× to 2×. |
+| `referenceLine` | `ReferenceLine` | — | Adds a labelled comparison line. |
+| `emptyLabel` | `string` | `No data` | Label displayed and announced when no positive data is available. |
+| `onBarPress` | `(datum, index) => void` | — | Makes bars interactive and receives ordinary presses. |
+
+Selection props shared with `LineChart` and `AreaChart` are documented in
+[Controlled selection](#controlled-selection).
+
 ## Controlled selection
 
 `BarChart`, `LineChart`, and `AreaChart` do not own the selected values. Pass
@@ -166,6 +182,19 @@ export function SpendingBreakdown() {
   );
 }
 ```
+
+### Donut chart API
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | `readonly ChartDatum[]` | — | Categories used to calculate the total and percentages. |
+| `size` | `number` | `200` | Outer diameter in logical pixels. |
+| `thickness` | `number` | `20` | Ring stroke width. |
+| `gapAngle` | `number` | `2` | Gap between slices in degrees, clamped from 0 to 12. |
+| `showLegend` | `boolean` | `true` | Shows the category legend below the donut. |
+| `centerContent` | `ReactNode \| render function` | — | Replaces the default total in the center. |
+| `emptyLabel` | `string` | `No data` | Label displayed and announced when the total is zero. |
+| `onSlicePress` | `(datum, index) => void` | — | Makes legend entries interactive. |
 
 `PieChart` remains available as a deprecated alias for the previous prototype.
 New code should use `DonutChart`.
@@ -276,10 +305,45 @@ import { ProgressRing } from '@dansalomon/charty';
 | `centerContent` | `ReactNode \| render function` | — | Replaces the default center content. |
 | `onPress` | `(value, max, progress) => void` | — | Makes the ring interactive. |
 
-## Themes
+## Customization
 
-The presets are ordinary theme objects and can be extended without replacing
-every color:
+### Shared chart props
+
+Every chart accepts the following presentation and accessibility props:
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `accessibilityLabel` | `string` | Component-specific | Describes the chart as a whole. |
+| `accessibilityHint` | `string` | — | Describes the result of interacting with chart values. |
+| `formatValue` | `(value) => string` | Compact number | Formats visible and announced values. |
+| `theme` | `Partial<ChartTheme>` | Light theme | Overrides any subset of the active chart colors. |
+| `style` | `StyleProp<ViewStyle>` | — | Styles the chart root container. |
+| `labelStyle` | `StyleProp<TextStyle>` | — | Styles native text labels such as legends and empty states. |
+
+### Data colors and accessible labels
+
+Every `ChartDatum` can override its own color and screen-reader label:
+
+```tsx
+const data = [
+  {
+    label: 'Housing',
+    value: 1_200,
+    color: '#0F6564',
+    accessibilityLabel: 'Housing, twelve hundred dollars',
+  },
+  {
+    label: 'Food',
+    value: 460,
+    color: '#C94F00',
+  },
+];
+```
+
+### Themes
+
+Use `chartThemes.light` or `chartThemes.dark`, or pass a partial theme without
+having to redefine every color:
 
 ```tsx
 import { BarChart, chartThemes } from '@dansalomon/charty';
@@ -292,6 +356,60 @@ import { BarChart, chartThemes } from '@dansalomon/charty';
   }}
 />
 ```
+
+| Theme key | Used for | Fallback |
+| --- | --- | --- |
+| `backgroundColor` | Chart background | Transparent in the light theme |
+| `barColor` | Default bars | — |
+| `selectedColor` | Selected bars and points | — |
+| `gridColor` | Cartesian grid lines | — |
+| `labelColor` | Axis, legend, and secondary text | — |
+| `valueColor` | Totals, percentages, and primary values | — |
+| `referenceLineColor` | Comparison lines and labels | — |
+| `donutColors` | Slice palette when data has no `color` | — |
+| `lineColor` | Line and area stroke | `barColor` |
+| `pointColor` | Line and area points | `lineColor`, then `barColor` |
+| `ringColor` | Progress stroke | `barColor` |
+| `ringTrackColor` | Remaining progress track | `gridColor` |
+
+### Responsive and fixed sizing
+
+Cartesian charts measure their container when `width` is omitted. Pass a
+numeric width for deterministic previews, tests, or fixed layouts:
+
+```tsx
+<View style={{ width: '100%' }}>
+  <BarChart data={months} />
+</View>
+
+<LineChart data={months} width={360} height={280} />
+```
+
+`DonutChart` and `ProgressRing` use their `size` prop for the diagram diameter.
+Their root container can still be positioned with `style`.
+
+### Custom center content
+
+`DonutChart` and `ProgressRing` accept either a React node or a render function:
+
+```tsx
+import { Text, View } from 'react-native';
+import { DonutChart } from '@dansalomon/charty';
+
+<DonutChart
+  data={categories}
+  centerContent={({ formattedTotal }) => (
+    <View style={{ alignItems: 'center' }}>
+      <Text>Total spent</Text>
+      <Text>{formattedTotal}</Text>
+    </View>
+  )}
+/>
+```
+
+The donut render function receives `total` and `formattedTotal`. The progress
+ring render function receives `value`, `max`, `progress`, `formattedValue`,
+`formattedMax`, and `formattedProgress`.
 
 ## Coordinating charts
 
