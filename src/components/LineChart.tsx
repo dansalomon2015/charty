@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   PixelRatio,
@@ -10,17 +10,31 @@ import {
   type LayoutChangeEvent,
   type ViewStyle,
 } from 'react-native';
-import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient,
+  Line,
+  Path,
+  Stop,
+  Text as SvgText,
+} from 'react-native-svg';
 import { resolveTheme } from '../theme';
 import type {
   ChartDatum,
+  ChartGradient,
+  ChartSelectionBehavior,
   ChartSelectionEvent,
+  ChartSelectionInteraction,
   ReferenceLine,
   SharedChartProps,
 } from '../types';
 import {
+  createAreaPath,
+  createLinearPath,
   defaultCartesianPadding,
   getCartesianFrame,
+  getXForPoint,
   getYForValue,
 } from '../utils/cartesian';
 import {
@@ -31,58 +45,78 @@ import {
 import { defaultValueFormatter } from '../utils/format';
 import { createTicks, getChartMaximum, toNonNegativeFinite } from '../utils/scales';
 import {
-  getBarSelectionTransition,
+  getSelectionTransition,
   hasMultipleSelectionModifier,
-  type BarChartSelectionBehavior,
-  type BarChartSelectionInteraction,
 } from '../utils/selection';
 
-export type BarChartSelectionEvent = ChartSelectionEvent;
+export type LineChartSelectionEvent = ChartSelectionEvent;
 
-export interface BarChartProps extends SharedChartProps {
+export interface LineChartProps extends SharedChartProps {
   data: readonly ChartDatum[];
   width?: number;
   height?: number;
-  barWidth?: number;
+  strokeWidth?: number;
+  showPoints?: boolean;
+  pointRadius?: number;
   /** Overrides the system font scale for SVG labels, clamped between 1 and 2. */
   fontScale?: number;
+  lineColor?: string;
+  lineGradient?: ChartGradient;
   referenceLine?: ReferenceLine;
-  /** Backwards-compatible single selected index. Ignored when selectedIndices is supplied. */
   selectedIndex?: number;
-  /** Controlled selected indices. Supply onSelectionChange to update them. */
   selectedIndices?: readonly number[];
-  /** Selection state machine. Multiple selection must be explicitly enabled. */
-  selectionBehavior?: BarChartSelectionBehavior;
+  selectionBehavior?: ChartSelectionBehavior;
   emptyLabel?: string;
-  /** Backwards-compatible callback invoked for ordinary presses. */
-  onBarPress?: (datum: ChartDatum, index: number) => void;
-  /** Receives the next selection after a press or enabled long press. */
-  onSelectionChange?: (indices: number[], event: BarChartSelectionEvent) => void;
+  onPointPress?: (datum: ChartDatum, index: number) => void;
+  onSelectionChange?: (indices: number[], event: LineChartSelectionEvent) => void;
 }
 
-export function BarChart({
+export interface CartesianLineChartProps extends LineChartProps {
+  areaFill?: boolean;
+  areaFillColor?: string | undefined;
+  areaFillGradient?: ChartGradient | undefined;
+  areaFillOpacity?: number | undefined;
+}
+
+function clampOpacity(value: number | undefined, fallback: number) {
+  if (value === undefined || !Number.isFinite(value)) return fallback;
+  return Math.max(0, Math.min(1, value));
+}
+
+export function CartesianLineChart({
   data,
   width,
   height = 240,
-  barWidth = 32,
+  strokeWidth = 3,
+  showPoints = true,
+  pointRadius = 4,
   fontScale,
+  lineColor,
+  lineGradient,
+  areaFill = false,
+  areaFillColor,
+  areaFillGradient,
+  areaFillOpacity,
   referenceLine,
   selectedIndex,
   selectedIndices,
   selectionBehavior = 'single',
   emptyLabel = 'No data',
-  accessibilityLabel = 'Bar chart',
+  accessibilityLabel = 'Line chart',
   accessibilityHint,
   formatValue = defaultValueFormatter,
   labelStyle,
   style,
   theme,
-  onBarPress,
+  onPointPress,
   onSelectionChange,
-}: BarChartProps) {
+}: CartesianLineChartProps) {
   const [measuredWidth, setMeasuredWidth] = useState(0);
   const [multipleSelectionActive, setMultipleSelectionActive] = useState(false);
   const suppressNextPress = useRef(false);
+  const reactId = useId();
+  const gradientId = `charty-line-${reactId.replace(/:/g, '')}`;
+  const areaGradientId = `charty-area-${reactId.replace(/:/g, '')}`;
   const colors = useMemo(() => resolveTheme(theme), [theme]);
   const resolvedFontScale = normalizeFontScale(
     fontScale ?? PixelRatio.getFontScale()
@@ -104,8 +138,12 @@ export function BarChart({
   const ticks = createTicks(maximum);
   const scaleMaximum = ticks[ticks.length - 1] ?? 0;
   const { plotWidth, plotHeight } = getCartesianFrame(chartWidth, height, padding);
-  const slotWidth = safeData.length > 0 ? plotWidth / safeData.length : plotWidth;
-  const resolvedBarWidth = Math.max(2, Math.min(barWidth, slotWidth * 0.68));
+  const points = safeData.map((datum, index) => ({
+    x: getXForPoint(index, safeData.length, plotWidth, padding),
+    y: getYForValue(datum.value, scaleMaximum, plotHeight, padding),
+  }));
+  const path = createLinearPath(points);
+  const areaPath = createAreaPath(points, padding.top + plotHeight);
   const resolvedSelectedIndices = useMemo(
     () => selectedIndices ?? (selectedIndex === undefined ? [] : [selectedIndex]),
     [selectedIndex, selectedIndices]
@@ -114,6 +152,7 @@ export function BarChart({
     () => new Set(resolvedSelectedIndices),
     [resolvedSelectedIndices]
   );
+  const resolvedLineColor = lineColor ?? colors.lineColor;
 
   useEffect(() => {
     if (selectionBehavior === 'single' || resolvedSelectedIndices.length === 0) {
@@ -124,12 +163,12 @@ export function BarChart({
   const changeSelection = (
     datum: ChartDatum,
     index: number,
-    interaction: BarChartSelectionInteraction
+    interaction: ChartSelectionInteraction
   ) => {
-    if (interaction === 'press') onBarPress?.(datum, index);
+    if (interaction === 'press') onPointPress?.(datum, index);
     if (!onSelectionChange) return;
 
-    const transition = getBarSelectionTransition(
+    const transition = getSelectionTransition(
       resolvedSelectedIndices,
       index,
       selectionBehavior,
@@ -165,6 +204,7 @@ export function BarChart({
 
   const yForValue = (value: number) =>
     getYForValue(value, scaleMaximum, plotHeight, padding);
+  const stepWidth = safeData.length > 1 ? plotWidth / (safeData.length - 1) : plotWidth;
 
   return (
     <View onLayout={onLayout} style={[{ height, backgroundColor: colors.backgroundColor }, style]}>
@@ -177,6 +217,39 @@ export function BarChart({
             style={styles.accessibilitySummary}
           />
           <Svg width={chartWidth} height={height}>
+            {lineGradient || areaFillGradient ? (
+              <Defs>
+                {lineGradient ? (
+                  <LinearGradient id={gradientId} x1="0%" x2="100%" y1="0%" y2="0%">
+                    <Stop
+                      offset="0%"
+                      stopColor={lineGradient.startColor}
+                      stopOpacity={clampOpacity(lineGradient.startOpacity, 1)}
+                    />
+                    <Stop
+                      offset="100%"
+                      stopColor={lineGradient.endColor}
+                      stopOpacity={clampOpacity(lineGradient.endOpacity, 1)}
+                    />
+                  </LinearGradient>
+                ) : null}
+                {areaFillGradient ? (
+                  <LinearGradient id={areaGradientId} x1="0%" x2="0%" y1="0%" y2="100%">
+                    <Stop
+                      offset="0%"
+                      stopColor={areaFillGradient.startColor}
+                      stopOpacity={clampOpacity(areaFillGradient.startOpacity, 0.4)}
+                    />
+                    <Stop
+                      offset="100%"
+                      stopColor={areaFillGradient.endColor}
+                      stopOpacity={clampOpacity(areaFillGradient.endOpacity, 0.04)}
+                    />
+                  </LinearGradient>
+                ) : null}
+              </Defs>
+            ) : null}
+
             {ticks.map((tick) => {
               const y = yForValue(tick);
               return (
@@ -202,23 +275,50 @@ export function BarChart({
               );
             })}
 
-            {safeData.map((datum, index) => {
-              const x = padding.left + slotWidth * index + (slotWidth - resolvedBarWidth) / 2;
-              const y = yForValue(datum.value);
+            {areaFill ? (
+              <Path
+                d={areaPath}
+                fill={
+                  areaFillGradient
+                    ? `url(#${areaGradientId})`
+                    : areaFillColor ?? resolvedLineColor
+                }
+                fillOpacity={clampOpacity(
+                  areaFillOpacity,
+                  areaFillGradient ? 1 : 0.18
+                )}
+                stroke="none"
+              />
+            ) : null}
+
+            <Path
+              d={path}
+              fill="none"
+              stroke={lineGradient ? `url(#${gradientId})` : resolvedLineColor}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={Math.max(1, strokeWidth)}
+            />
+
+            {points.map((point, index) => {
+              const datum = safeData[index];
+              if (!datum) return null;
               const isSelected = selectedIndexSet.has(index);
               return (
                 <React.Fragment key={`${datum.label}-${index}`}>
-                  <Rect
-                    x={x}
-                    y={y}
-                    width={resolvedBarWidth}
-                    height={padding.top + plotHeight - y}
-                    rx={Math.min(4, resolvedBarWidth / 2)}
-                    fill={datum.color ?? (isSelected ? colors.selectedColor : colors.barColor)}
-                    opacity={selectedIndexSet.size === 0 || isSelected ? 1 : 0.58}
-                  />
+                  {showPoints || isSelected ? (
+                    <Circle
+                      cx={point.x}
+                      cy={point.y}
+                      fill={isSelected ? colors.selectedColor : datum.color ?? colors.pointColor}
+                      opacity={selectedIndexSet.size === 0 || isSelected ? 1 : 0.55}
+                      r={isSelected ? Math.max(3, pointRadius) + 2 : Math.max(2, pointRadius)}
+                      stroke={isSelected ? colors.backgroundColor : 'transparent'}
+                      strokeWidth={isSelected ? 2 : 0}
+                    />
+                  ) : null}
                   <SvgText
-                    x={x + resolvedBarWidth / 2}
+                    x={point.x}
                     y={height - 12 * resolvedFontScale}
                     fill={colors.labelColor}
                     fontSize={svgFontSize}
@@ -257,22 +357,33 @@ export function BarChart({
           </Svg>
 
           {safeData.map((datum, index) => {
-            const x = padding.left + slotWidth * index;
+            const point = points[index];
+            if (!point) return null;
             const isSelected = selectedIndexSet.has(index);
-            const valueLabel = datum.accessibilityLabel ?? `${datum.label}, ${formatValue(datum.value)}`;
+            const left = index === 0 ? padding.left : point.x - stepWidth / 2;
+            const right =
+              index === safeData.length - 1
+                ? chartWidth - padding.right
+                : point.x + stepWidth / 2;
+            const valueLabel =
+              datum.accessibilityLabel ?? `${datum.label}, ${formatValue(datum.value)}`;
+
             return (
               <Pressable
                 accessibilityLabel={valueLabel}
                 accessibilityHint={
-                  onBarPress || onSelectionChange ? accessibilityHint : undefined
+                  onPointPress || onSelectionChange
+                    ? accessibilityHint
+                    : undefined
                 }
-                accessibilityRole={onBarPress || onSelectionChange ? 'button' : 'text'}
+                accessibilityRole={onPointPress || onSelectionChange ? 'button' : 'text'}
                 accessibilityState={{ selected: isSelected }}
                 {...getWebToggleAccessibilityProps(
                   isSelected,
-                  Platform.OS === 'web' && Boolean(onBarPress || onSelectionChange)
+                  Platform.OS === 'web' &&
+                    Boolean(onPointPress || onSelectionChange)
                 )}
-                disabled={!onBarPress && !onSelectionChange}
+                disabled={!onPointPress && !onSelectionChange}
                 key={`${datum.label}-${index}-target`}
                 onLongPress={
                   selectionBehavior === 'multiple' && onSelectionChange
@@ -296,7 +407,15 @@ export function BarChart({
                       : 'press'
                   );
                 }}
-                style={[styles.barTarget, { left: x, top: padding.top, width: slotWidth, height: plotHeight } as ViewStyle]}
+                style={[
+                  styles.pointTarget,
+                  {
+                    left,
+                    top: padding.top,
+                    width: Math.max(1, right - left),
+                    height: plotHeight,
+                  } as ViewStyle,
+                ]}
               />
             );
           })}
@@ -306,15 +425,16 @@ export function BarChart({
   );
 }
 
+export function LineChart(props: LineChartProps) {
+  return <CartesianLineChart {...props} />;
+}
+
 const styles = StyleSheet.create({
   accessibilitySummary: {
     height: 1,
     opacity: 0,
     position: 'absolute',
     width: 1,
-  },
-  barTarget: {
-    position: 'absolute',
   },
   empty: {
     alignItems: 'center',
@@ -323,5 +443,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
+  },
+  pointTarget: {
+    position: 'absolute',
   },
 });

@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { BarChart, DonutChart } from '@dansalomon/charty';
+import {
+  AreaChart,
+  BarChart,
+  DonutChart,
+  LineChart,
+  ProgressRing,
+  darkChartTheme,
+} from '@dansalomon/charty';
 import {
   aggregateBreakdowns,
   monthlyData,
   resolveSelectionIndices,
+  savingsData,
 } from './data';
 
 const currency = new Intl.NumberFormat('en-US', {
@@ -32,12 +40,71 @@ export default function App() {
         <Text style={styles.eyebrow}>CHARTY EXAMPLE</Text>
         <Text style={styles.title}>A clear view of your money.</Text>
 
+        <View style={[styles.card, styles.darkCard]}>
+          <Text style={[styles.cardTitle, styles.darkCardTitle]}>Spending trend</Text>
+          <Text style={[styles.cardCaption, styles.darkCardCaption]}>
+            The line chart shares the controlled month selection with the charts below.
+          </Text>
+          <LineChart
+            accessibilityHint="Selects this month. Long press to start multiple selection."
+            accessibilityLabel="Monthly spending trend"
+            data={monthlyData}
+            formatValue={currency.format}
+            lineGradient={{ startColor: '#4FD1DA', endColor: '#7EA6FF' }}
+            onSelectionChange={setSelectedIndices}
+            selectedIndices={selectedIndices}
+            selectionBehavior="multiple"
+            theme={darkChartTheme}
+          />
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Savings balance</Text>
+          <Text style={styles.cardCaption}>
+            A vertical gradient emphasizes growth without hiding the grid.
+          </Text>
+          <AreaChart
+            accessibilityHint="Selects this month. Long press to start multiple selection."
+            accessibilityLabel="Savings balance by month"
+            data={savingsData}
+            fillGradient={{
+              startColor: '#5A88FF',
+              endColor: '#5A88FF',
+              startOpacity: 0.42,
+              endOpacity: 0.04,
+            }}
+            formatValue={currency.format}
+            lineColor="#5A88FF"
+            onSelectionChange={setSelectedIndices}
+            selectedIndices={selectedIndices}
+            selectionBehavior="multiple"
+          />
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Emergency fund</Text>
+          <Text style={styles.cardCaption}>
+            Progress toward a $50,000 safety target.
+          </Text>
+          <ProgressRing
+            accessibilityLabel="Emergency fund progress"
+            color="#C94F00"
+            formatValue={currency.format}
+            label="Funded"
+            max={50_000}
+            size={190}
+            style={styles.progressRing}
+            value={36_000}
+          />
+        </View>
+
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Monthly spending</Text>
           <Text style={styles.cardCaption}>
             Long press on touch, or use Ctrl/Command + click on web, to start multiple selection.
           </Text>
           <BarChart
+            accessibilityHint="Selects this month. Long press to start multiple selection."
             accessibilityLabel="Monthly spending compared with a fifty thousand dollar budget"
             data={monthlyData}
             formatValue={currency.format}
@@ -86,6 +153,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+  darkCard: {
+    backgroundColor: '#17343D',
+  },
+  darkCardCaption: {
+    color: '#AFC5C9',
+  },
+  darkCardTitle: {
+    color: '#F3FAFA',
+  },
   content: {
     padding: 20,
     paddingBottom: 48,
@@ -99,6 +175,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1.4,
+  },
+  progressRing: {
+    marginTop: 8,
+    width: '100%',
   },
   screen: {
     backgroundColor: '#F0F7F7',

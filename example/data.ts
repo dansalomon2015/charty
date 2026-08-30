@@ -1,6 +1,6 @@
 const categories = [
   { label: 'Housing', color: '#0F6564' },
-  { label: 'Food', color: '#FD7119' },
+  { label: 'Food', color: '#C94F00' },
   { label: 'Transport', color: '#5A88FF' },
   { label: 'Leisure', color: '#FC6AFF' },
 ] as const;
@@ -27,6 +27,15 @@ export const monthlyData = [
   { label: 'Apr', value: 59_000, breakdown: createBreakdown(59_000, [0.51, 0.19, 0.11, 0.19]) },
   { label: 'May', value: 55_000, breakdown: createBreakdown(55_000, [0.46, 0.21, 0.15, 0.18]) },
   { label: 'Jun', value: 34_000, breakdown: createBreakdown(34_000, [0.44, 0.24, 0.17, 0.15]) },
+];
+
+export const savingsData = [
+  { label: 'Jan', value: 18_000 },
+  { label: 'Feb', value: 21_500 },
+  { label: 'Mar', value: 27_000 },
+  { label: 'Apr', value: 31_500 },
+  { label: 'May', value: 36_000 },
+  { label: 'Jun', value: 42_000 },
 ];
 
 export function resolveSelectionIndices(indices: readonly number[]) {

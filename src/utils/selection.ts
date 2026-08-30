@@ -1,5 +1,12 @@
-export type BarChartSelectionBehavior = 'single' | 'multiple';
-export type BarChartSelectionInteraction = 'press' | 'longPress' | 'modifierPress';
+import type {
+  ChartSelectionBehavior,
+  ChartSelectionInteraction,
+} from '../types';
+
+/** @deprecated Use ChartSelectionBehavior. */
+export type BarChartSelectionBehavior = ChartSelectionBehavior;
+/** @deprecated Use ChartSelectionInteraction. */
+export type BarChartSelectionInteraction = ChartSelectionInteraction;
 
 export interface BarChartSelectionTransition {
   indices: number[];
@@ -27,12 +34,12 @@ export function hasMultipleSelectionModifier(event: unknown) {
   );
 }
 
-export function getBarSelectionTransition(
+export function getSelectionTransition(
   selectedIndices: readonly number[],
   index: number,
-  behavior: BarChartSelectionBehavior,
+  behavior: ChartSelectionBehavior,
   multiple: boolean,
-  interaction: BarChartSelectionInteraction
+  interaction: ChartSelectionInteraction
 ): BarChartSelectionTransition {
   const current = uniqueIndices(selectedIndices);
 
@@ -57,3 +64,6 @@ export function getBarSelectionTransition(
     multiple: false,
   };
 }
+
+/** @deprecated Use getSelectionTransition. */
+export const getBarSelectionTransition = getSelectionTransition;
