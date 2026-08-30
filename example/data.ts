@@ -1,6 +1,6 @@
 const categories = [
   { label: 'Housing', color: '#0F6564' },
-  { label: 'Food', color: '#FD7119' },
+  { label: 'Food', color: '#C94F00' },
   { label: 'Transport', color: '#5A88FF' },
   { label: 'Leisure', color: '#FC6AFF' },
 ] as const;

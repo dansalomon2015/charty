@@ -159,7 +159,7 @@ export function SpendingBreakdown() {
       accessibilityLabel="Spending by category"
       data={[
         { label: 'Housing', value: 1_200, color: '#0F6564' },
-        { label: 'Food', value: 460, color: '#FD7119' },
+        { label: 'Food', value: 460, color: '#C94F00' },
         { label: 'Transport', value: 240, color: '#5A88FF' },
       ]}
     />
@@ -209,6 +209,7 @@ theme.
 | `lineColor` | `string` | Theme value | Overrides the theme line color. |
 | `lineGradient` | `ChartGradient` | — | Applies a horizontal start-to-end color gradient. |
 | `referenceLine` | `ReferenceLine` | — | Adds a labelled comparison line. |
+| `fontScale` | `number` | System setting | Overrides SVG label scaling, clamped from 1× to 2×. |
 
 ## Area chart
 
@@ -254,7 +255,7 @@ import { ProgressRing } from '@dansalomon/charty';
 
 <ProgressRing
   accessibilityLabel="Emergency fund progress"
-  color="#FD7119"
+  color="#C94F00"
   formatValue={currency.format}
   label="Funded"
   max={50_000}
@@ -307,7 +308,7 @@ const months = [
     value: 42_000,
     breakdown: [
       { label: 'Housing', value: 21_000, color: '#0F6564' },
-      { label: 'Food', value: 8_400, color: '#FD7119' },
+      { label: 'Food', value: 8_400, color: '#C94F00' },
     ],
   },
   {
@@ -315,7 +316,7 @@ const months = [
     value: 59_000,
     breakdown: [
       { label: 'Housing', value: 30_000, color: '#0F6564' },
-      { label: 'Food', value: 10_600, color: '#FD7119' },
+      { label: 'Food', value: 10_600, color: '#C94F00' },
     ],
   },
 ];
@@ -344,6 +345,22 @@ The complete interaction is available in the [`example`](./example) Expo app.
 The example enables long-press multiple selection and aggregates every selected
 month into the `DonutChart` data passed by the application. When the selection
 is empty, it removes the filter and shows the aggregate for all months.
+
+## Accessibility
+
+Each chart exposes a summary and a label for every data value to VoiceOver and
+TalkBack. Interactive values use a button role, publish their selected state,
+and accept `accessibilityHint` for application-specific instructions. On web,
+selected values also expose `aria-pressed`.
+
+`BarChart`, `LineChart`, and `AreaChart` follow the system font scale for SVG
+axis labels and reserve matching chart padding. Applications can pass
+`fontScale` for deterministic previews or tests. The built-in light and dark
+themes use text and reference colors with at least 4.5:1 contrast against their
+chart backgrounds.
+
+See the [accessibility test guide](./docs/ACCESSIBILITY.md) for the manual
+VoiceOver, TalkBack, large-text, and keyboard checks used before a release.
 
 ## Development
 

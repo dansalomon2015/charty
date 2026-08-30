@@ -56,6 +56,8 @@ export type ValueFormatter = (value: number) => string;
 
 export interface SharedChartProps {
   accessibilityLabel?: string;
+  /** Hint announced for interactive chart values. */
+  accessibilityHint?: string;
   formatValue?: ValueFormatter;
   style?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;

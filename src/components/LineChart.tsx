@@ -1,6 +1,8 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
+  PixelRatio,
+  Platform,
   StyleSheet,
   Text as NativeText,
   View,
@@ -35,6 +37,11 @@ import {
   getXForPoint,
   getYForValue,
 } from '../utils/cartesian';
+import {
+  getWebToggleAccessibilityProps,
+  normalizeFontScale,
+  scaleCartesianPadding,
+} from '../utils/accessibility';
 import { defaultValueFormatter } from '../utils/format';
 import { createTicks, getChartMaximum, toNonNegativeFinite } from '../utils/scales';
 import {
@@ -51,6 +58,8 @@ export interface LineChartProps extends SharedChartProps {
   strokeWidth?: number;
   showPoints?: boolean;
   pointRadius?: number;
+  /** Overrides the system font scale for SVG labels, clamped between 1 and 2. */
+  fontScale?: number;
   lineColor?: string;
   lineGradient?: ChartGradient;
   referenceLine?: ReferenceLine;
@@ -69,8 +78,6 @@ export interface CartesianLineChartProps extends LineChartProps {
   areaFillOpacity?: number | undefined;
 }
 
-const PADDING = defaultCartesianPadding;
-
 function clampOpacity(value: number | undefined, fallback: number) {
   if (value === undefined || !Number.isFinite(value)) return fallback;
   return Math.max(0, Math.min(1, value));
@@ -83,6 +90,7 @@ export function CartesianLineChart({
   strokeWidth = 3,
   showPoints = true,
   pointRadius = 4,
+  fontScale,
   lineColor,
   lineGradient,
   areaFill = false,
@@ -95,6 +103,7 @@ export function CartesianLineChart({
   selectionBehavior = 'single',
   emptyLabel = 'No data',
   accessibilityLabel = 'Line chart',
+  accessibilityHint,
   formatValue = defaultValueFormatter,
   labelStyle,
   style,
@@ -109,6 +118,14 @@ export function CartesianLineChart({
   const gradientId = `charty-line-${reactId.replace(/:/g, '')}`;
   const areaGradientId = `charty-area-${reactId.replace(/:/g, '')}`;
   const colors = useMemo(() => resolveTheme(theme), [theme]);
+  const resolvedFontScale = normalizeFontScale(
+    fontScale ?? PixelRatio.getFontScale()
+  );
+  const padding = scaleCartesianPadding(
+    defaultCartesianPadding,
+    resolvedFontScale
+  );
+  const svgFontSize = 11 * resolvedFontScale;
   const chartWidth = width ?? measuredWidth;
   const safeData = useMemo(
     () => data.map((datum) => ({ ...datum, value: toNonNegativeFinite(datum.value) })),
@@ -120,13 +137,13 @@ export function CartesianLineChart({
   );
   const ticks = createTicks(maximum);
   const scaleMaximum = ticks[ticks.length - 1] ?? 0;
-  const { plotWidth, plotHeight } = getCartesianFrame(chartWidth, height, PADDING);
+  const { plotWidth, plotHeight } = getCartesianFrame(chartWidth, height, padding);
   const points = safeData.map((datum, index) => ({
-    x: getXForPoint(index, safeData.length, plotWidth, PADDING),
-    y: getYForValue(datum.value, scaleMaximum, plotHeight, PADDING),
+    x: getXForPoint(index, safeData.length, plotWidth, padding),
+    y: getYForValue(datum.value, scaleMaximum, plotHeight, padding),
   }));
   const path = createLinearPath(points);
-  const areaPath = createAreaPath(points, PADDING.top + plotHeight);
+  const areaPath = createAreaPath(points, padding.top + plotHeight);
   const resolvedSelectedIndices = useMemo(
     () => selectedIndices ?? (selectedIndex === undefined ? [] : [selectedIndex]),
     [selectedIndex, selectedIndices]
@@ -186,7 +203,7 @@ export function CartesianLineChart({
   }
 
   const yForValue = (value: number) =>
-    getYForValue(value, scaleMaximum, plotHeight, PADDING);
+    getYForValue(value, scaleMaximum, plotHeight, padding);
   const stepWidth = safeData.length > 1 ? plotWidth / (safeData.length - 1) : plotWidth;
 
   return (
@@ -238,18 +255,18 @@ export function CartesianLineChart({
               return (
                 <React.Fragment key={tick}>
                   <Line
-                    x1={PADDING.left}
-                    x2={chartWidth - PADDING.right}
+                    x1={padding.left}
+                    x2={chartWidth - padding.right}
                     y1={y}
                     y2={y}
                     stroke={colors.gridColor}
                     strokeWidth={1}
                   />
                   <SvgText
-                    x={PADDING.left - 8}
-                    y={y + 4}
+                    x={padding.left - 8 * resolvedFontScale}
+                    y={y + 4 * resolvedFontScale}
                     fill={colors.labelColor}
-                    fontSize={11}
+                    fontSize={svgFontSize}
                     textAnchor="end"
                   >
                     {formatValue(tick)}
@@ -302,9 +319,9 @@ export function CartesianLineChart({
                   ) : null}
                   <SvgText
                     x={point.x}
-                    y={height - 12}
+                    y={height - 12 * resolvedFontScale}
                     fill={colors.labelColor}
-                    fontSize={11}
+                    fontSize={svgFontSize}
                     textAnchor="middle"
                   >
                     {datum.label}
@@ -316,8 +333,8 @@ export function CartesianLineChart({
             {referenceLine && referenceLine.value >= 0 ? (
               <>
                 <Line
-                  x1={PADDING.left}
-                  x2={chartWidth - PADDING.right}
+                  x1={padding.left}
+                  x2={chartWidth - padding.right}
                   y1={yForValue(referenceLine.value)}
                   y2={yForValue(referenceLine.value)}
                   stroke={referenceLine.color ?? colors.referenceLineColor}
@@ -326,10 +343,10 @@ export function CartesianLineChart({
                 />
                 {referenceLine.label ? (
                   <SvgText
-                    x={chartWidth - PADDING.right}
-                    y={yForValue(referenceLine.value) - 6}
+                    x={chartWidth - padding.right}
+                    y={yForValue(referenceLine.value) - 6 * resolvedFontScale}
                     fill={referenceLine.color ?? colors.referenceLineColor}
-                    fontSize={11}
+                    fontSize={svgFontSize}
                     textAnchor="end"
                   >
                     {referenceLine.label}
@@ -343,10 +360,10 @@ export function CartesianLineChart({
             const point = points[index];
             if (!point) return null;
             const isSelected = selectedIndexSet.has(index);
-            const left = index === 0 ? PADDING.left : point.x - stepWidth / 2;
+            const left = index === 0 ? padding.left : point.x - stepWidth / 2;
             const right =
               index === safeData.length - 1
-                ? chartWidth - PADDING.right
+                ? chartWidth - padding.right
                 : point.x + stepWidth / 2;
             const valueLabel =
               datum.accessibilityLabel ?? `${datum.label}, ${formatValue(datum.value)}`;
@@ -354,8 +371,18 @@ export function CartesianLineChart({
             return (
               <Pressable
                 accessibilityLabel={valueLabel}
+                accessibilityHint={
+                  onPointPress || onSelectionChange
+                    ? accessibilityHint
+                    : undefined
+                }
                 accessibilityRole={onPointPress || onSelectionChange ? 'button' : 'text'}
                 accessibilityState={{ selected: isSelected }}
+                {...getWebToggleAccessibilityProps(
+                  isSelected,
+                  Platform.OS === 'web' &&
+                    Boolean(onPointPress || onSelectionChange)
+                )}
                 disabled={!onPointPress && !onSelectionChange}
                 key={`${datum.label}-${index}-target`}
                 onLongPress={
@@ -384,7 +411,7 @@ export function CartesianLineChart({
                   styles.pointTarget,
                   {
                     left,
-                    top: PADDING.top,
+                    top: padding.top,
                     width: Math.max(1, right - left),
                     height: plotHeight,
                   } as ViewStyle,

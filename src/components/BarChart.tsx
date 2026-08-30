@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
+  PixelRatio,
+  Platform,
   StyleSheet,
   Text as NativeText,
   View,
@@ -21,6 +23,11 @@ import {
   getCartesianFrame,
   getYForValue,
 } from '../utils/cartesian';
+import {
+  getWebToggleAccessibilityProps,
+  normalizeFontScale,
+  scaleCartesianPadding,
+} from '../utils/accessibility';
 import { defaultValueFormatter } from '../utils/format';
 import { createTicks, getChartMaximum, toNonNegativeFinite } from '../utils/scales';
 import {
@@ -37,6 +44,8 @@ export interface BarChartProps extends SharedChartProps {
   width?: number;
   height?: number;
   barWidth?: number;
+  /** Overrides the system font scale for SVG labels, clamped between 1 and 2. */
+  fontScale?: number;
   referenceLine?: ReferenceLine;
   /** Backwards-compatible single selected index. Ignored when selectedIndices is supplied. */
   selectedIndex?: number;
@@ -51,19 +60,19 @@ export interface BarChartProps extends SharedChartProps {
   onSelectionChange?: (indices: number[], event: BarChartSelectionEvent) => void;
 }
 
-const PADDING = defaultCartesianPadding;
-
 export function BarChart({
   data,
   width,
   height = 240,
   barWidth = 32,
+  fontScale,
   referenceLine,
   selectedIndex,
   selectedIndices,
   selectionBehavior = 'single',
   emptyLabel = 'No data',
   accessibilityLabel = 'Bar chart',
+  accessibilityHint,
   formatValue = defaultValueFormatter,
   labelStyle,
   style,
@@ -75,6 +84,14 @@ export function BarChart({
   const [multipleSelectionActive, setMultipleSelectionActive] = useState(false);
   const suppressNextPress = useRef(false);
   const colors = useMemo(() => resolveTheme(theme), [theme]);
+  const resolvedFontScale = normalizeFontScale(
+    fontScale ?? PixelRatio.getFontScale()
+  );
+  const padding = scaleCartesianPadding(
+    defaultCartesianPadding,
+    resolvedFontScale
+  );
+  const svgFontSize = 11 * resolvedFontScale;
   const chartWidth = width ?? measuredWidth;
   const safeData = useMemo(
     () => data.map((datum) => ({ ...datum, value: toNonNegativeFinite(datum.value) })),
@@ -86,7 +103,7 @@ export function BarChart({
   );
   const ticks = createTicks(maximum);
   const scaleMaximum = ticks[ticks.length - 1] ?? 0;
-  const { plotWidth, plotHeight } = getCartesianFrame(chartWidth, height, PADDING);
+  const { plotWidth, plotHeight } = getCartesianFrame(chartWidth, height, padding);
   const slotWidth = safeData.length > 0 ? plotWidth / safeData.length : plotWidth;
   const resolvedBarWidth = Math.max(2, Math.min(barWidth, slotWidth * 0.68));
   const resolvedSelectedIndices = useMemo(
@@ -147,7 +164,7 @@ export function BarChart({
   }
 
   const yForValue = (value: number) =>
-    getYForValue(value, scaleMaximum, plotHeight, PADDING);
+    getYForValue(value, scaleMaximum, plotHeight, padding);
 
   return (
     <View onLayout={onLayout} style={[{ height, backgroundColor: colors.backgroundColor }, style]}>
@@ -165,18 +182,18 @@ export function BarChart({
               return (
                 <React.Fragment key={tick}>
                   <Line
-                    x1={PADDING.left}
-                    x2={chartWidth - PADDING.right}
+                    x1={padding.left}
+                    x2={chartWidth - padding.right}
                     y1={y}
                     y2={y}
                     stroke={colors.gridColor}
                     strokeWidth={1}
                   />
                   <SvgText
-                    x={PADDING.left - 8}
-                    y={y + 4}
+                    x={padding.left - 8 * resolvedFontScale}
+                    y={y + 4 * resolvedFontScale}
                     fill={colors.labelColor}
-                    fontSize={11}
+                    fontSize={svgFontSize}
                     textAnchor="end"
                   >
                     {formatValue(tick)}
@@ -186,7 +203,7 @@ export function BarChart({
             })}
 
             {safeData.map((datum, index) => {
-              const x = PADDING.left + slotWidth * index + (slotWidth - resolvedBarWidth) / 2;
+              const x = padding.left + slotWidth * index + (slotWidth - resolvedBarWidth) / 2;
               const y = yForValue(datum.value);
               const isSelected = selectedIndexSet.has(index);
               return (
@@ -195,16 +212,16 @@ export function BarChart({
                     x={x}
                     y={y}
                     width={resolvedBarWidth}
-                    height={PADDING.top + plotHeight - y}
+                    height={padding.top + plotHeight - y}
                     rx={Math.min(4, resolvedBarWidth / 2)}
                     fill={datum.color ?? (isSelected ? colors.selectedColor : colors.barColor)}
                     opacity={selectedIndexSet.size === 0 || isSelected ? 1 : 0.58}
                   />
                   <SvgText
                     x={x + resolvedBarWidth / 2}
-                    y={height - 12}
+                    y={height - 12 * resolvedFontScale}
                     fill={colors.labelColor}
-                    fontSize={11}
+                    fontSize={svgFontSize}
                     textAnchor="middle"
                   >
                     {datum.label}
@@ -216,8 +233,8 @@ export function BarChart({
             {referenceLine && referenceLine.value >= 0 ? (
               <>
                 <Line
-                  x1={PADDING.left}
-                  x2={chartWidth - PADDING.right}
+                  x1={padding.left}
+                  x2={chartWidth - padding.right}
                   y1={yForValue(referenceLine.value)}
                   y2={yForValue(referenceLine.value)}
                   stroke={referenceLine.color ?? colors.referenceLineColor}
@@ -226,10 +243,10 @@ export function BarChart({
                 />
                 {referenceLine.label ? (
                   <SvgText
-                    x={chartWidth - PADDING.right}
-                    y={yForValue(referenceLine.value) - 6}
+                    x={chartWidth - padding.right}
+                    y={yForValue(referenceLine.value) - 6 * resolvedFontScale}
                     fill={referenceLine.color ?? colors.referenceLineColor}
-                    fontSize={11}
+                    fontSize={svgFontSize}
                     textAnchor="end"
                   >
                     {referenceLine.label}
@@ -240,14 +257,21 @@ export function BarChart({
           </Svg>
 
           {safeData.map((datum, index) => {
-            const x = PADDING.left + slotWidth * index;
+            const x = padding.left + slotWidth * index;
             const isSelected = selectedIndexSet.has(index);
             const valueLabel = datum.accessibilityLabel ?? `${datum.label}, ${formatValue(datum.value)}`;
             return (
               <Pressable
                 accessibilityLabel={valueLabel}
+                accessibilityHint={
+                  onBarPress || onSelectionChange ? accessibilityHint : undefined
+                }
                 accessibilityRole={onBarPress || onSelectionChange ? 'button' : 'text'}
                 accessibilityState={{ selected: isSelected }}
+                {...getWebToggleAccessibilityProps(
+                  isSelected,
+                  Platform.OS === 'web' && Boolean(onBarPress || onSelectionChange)
+                )}
                 disabled={!onBarPress && !onSelectionChange}
                 key={`${datum.label}-${index}-target`}
                 onLongPress={
@@ -272,7 +296,7 @@ export function BarChart({
                       : 'press'
                   );
                 }}
-                style={[styles.barTarget, { left: x, top: PADDING.top, width: slotWidth, height: plotHeight } as ViewStyle]}
+                style={[styles.barTarget, { left: x, top: padding.top, width: slotWidth, height: plotHeight } as ViewStyle]}
               />
             );
           })}
