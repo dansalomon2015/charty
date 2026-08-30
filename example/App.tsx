@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
+  AreaChart,
   BarChart,
   DonutChart,
   LineChart,
@@ -10,6 +11,7 @@ import {
   aggregateBreakdowns,
   monthlyData,
   resolveSelectionIndices,
+  savingsData,
 } from './data';
 
 const currency = new Intl.NumberFormat('en-US', {
@@ -51,6 +53,28 @@ export default function App() {
             selectedIndices={selectedIndices}
             selectionBehavior="multiple"
             theme={darkChartTheme}
+          />
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Savings balance</Text>
+          <Text style={styles.cardCaption}>
+            A vertical gradient emphasizes growth without hiding the grid.
+          </Text>
+          <AreaChart
+            accessibilityLabel="Savings balance by month"
+            data={savingsData}
+            fillGradient={{
+              startColor: '#5A88FF',
+              endColor: '#5A88FF',
+              startOpacity: 0.42,
+              endOpacity: 0.04,
+            }}
+            formatValue={currency.format}
+            lineColor="#5A88FF"
+            onSelectionChange={setSelectedIndices}
+            selectedIndices={selectedIndices}
+            selectionBehavior="multiple"
           />
         </View>
 
