@@ -46,6 +46,7 @@ export default function App() {
             The line chart shares the controlled month selection with the charts below.
           </Text>
           <LineChart
+            accessibilityHint="Selects this month. Long press to start multiple selection."
             accessibilityLabel="Monthly spending trend"
             data={monthlyData}
             formatValue={currency.format}
@@ -63,6 +64,7 @@ export default function App() {
             A vertical gradient emphasizes growth without hiding the grid.
           </Text>
           <AreaChart
+            accessibilityHint="Selects this month. Long press to start multiple selection."
             accessibilityLabel="Savings balance by month"
             data={savingsData}
             fillGradient={{
@@ -86,7 +88,7 @@ export default function App() {
           </Text>
           <ProgressRing
             accessibilityLabel="Emergency fund progress"
-            color="#FD7119"
+            color="#C94F00"
             formatValue={currency.format}
             label="Funded"
             max={50_000}
@@ -102,6 +104,7 @@ export default function App() {
             Long press on touch, or use Ctrl/Command + click on web, to start multiple selection.
           </Text>
           <BarChart
+            accessibilityHint="Selects this month. Long press to start multiple selection."
             accessibilityLabel="Monthly spending compared with a fifty thousand dollar budget"
             data={monthlyData}
             formatValue={currency.format}

@@ -26,6 +26,7 @@ export function DonutChart({
   showLegend = true,
   emptyLabel = 'No data',
   accessibilityLabel = 'Donut chart',
+  accessibilityHint,
   formatValue = defaultValueFormatter,
   labelStyle,
   style,
@@ -119,6 +120,7 @@ export function DonutChart({
         return (
           <Pressable
             accessibilityLabel={itemLabel}
+            accessibilityHint={onSlicePress ? accessibilityHint : undefined}
             accessibilityRole={onSlicePress ? 'button' : 'text'}
             disabled={!onSlicePress}
             key={`${datum.label}-${datum.originalIndex}-accessible`}

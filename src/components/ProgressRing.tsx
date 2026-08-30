@@ -35,6 +35,7 @@ export function ProgressRing({
   centerContent,
   emptyLabel = 'Invalid maximum',
   accessibilityLabel = 'Progress ring',
+  accessibilityHint,
   formatValue = defaultValueFormatter,
   labelStyle,
   style,
@@ -81,71 +82,89 @@ export function ProgressRing({
 
   const accessibleValue = `${accessibilityLabel}. ${label}. ${formattedProgress}. ${formattedValue} of ${formattedMax}.`;
 
+  const ring = (
+    <View style={{ height: safeSize, width: safeSize }}>
+      <Svg height={safeSize} width={safeSize}>
+        <Circle
+          cx={safeSize / 2}
+          cy={safeSize / 2}
+          fill="transparent"
+          r={radius}
+          stroke={trackColor ?? colors.ringTrackColor}
+          strokeWidth={safeThickness}
+        />
+        {normalized.progress > 0 ? (
+          <G transform={`rotate(-90 ${safeSize / 2} ${safeSize / 2})`}>
+            <Circle
+              cx={safeSize / 2}
+              cy={safeSize / 2}
+              fill="transparent"
+              r={radius}
+              stroke={color ?? colors.ringColor}
+              strokeDasharray={`${progressLength} ${circumference - progressLength}`}
+              strokeLinecap="round"
+              strokeWidth={safeThickness}
+            />
+          </G>
+        ) : null}
+      </Svg>
+
+      <View style={styles.center}>
+        {typeof centerContent === 'function' ? (
+          centerContent(centerRenderProps)
+        ) : centerContent ? (
+          centerContent
+        ) : (
+          <>
+            <Text style={[styles.label, { color: colors.labelColor }, labelStyle]}>
+              {label}
+            </Text>
+            <Text style={[styles.progress, { color: colors.valueColor }]}>
+              {formattedProgress}
+            </Text>
+            {showValue ? (
+              <Text style={[styles.value, { color: colors.labelColor }]}>
+                {formattedValue} / {formattedMax}
+              </Text>
+            ) : null}
+          </>
+        )}
+      </View>
+    </View>
+  );
+  const containerStyle = [
+    styles.root,
+    {
+      minHeight: safeSize,
+      backgroundColor: colors.backgroundColor,
+    },
+    style,
+  ];
+
+  if (!onPress) {
+    return (
+      <View
+        accessible
+        accessibilityLabel={accessibleValue}
+        accessibilityRole="image"
+        style={containerStyle}
+      >
+        {ring}
+      </View>
+    );
+  }
+
   return (
     <Pressable
+      accessibilityHint={accessibilityHint}
       accessibilityLabel={accessibleValue}
-      accessibilityRole={onPress ? 'button' : 'image'}
-      disabled={!onPress}
+      accessibilityRole="button"
       onPress={() =>
-        onPress?.(normalized.value, normalized.max, normalized.progress)
+        onPress(normalized.value, normalized.max, normalized.progress)
       }
-      style={[
-        styles.root,
-        {
-          minHeight: safeSize,
-          backgroundColor: colors.backgroundColor,
-        },
-        style,
-      ]}
+      style={containerStyle}
     >
-      <View style={{ height: safeSize, width: safeSize }}>
-        <Svg height={safeSize} width={safeSize}>
-          <Circle
-            cx={safeSize / 2}
-            cy={safeSize / 2}
-            fill="transparent"
-            r={radius}
-            stroke={trackColor ?? colors.ringTrackColor}
-            strokeWidth={safeThickness}
-          />
-          {normalized.progress > 0 ? (
-            <G transform={`rotate(-90 ${safeSize / 2} ${safeSize / 2})`}>
-              <Circle
-                cx={safeSize / 2}
-                cy={safeSize / 2}
-                fill="transparent"
-                r={radius}
-                stroke={color ?? colors.ringColor}
-                strokeDasharray={`${progressLength} ${circumference - progressLength}`}
-                strokeLinecap="round"
-                strokeWidth={safeThickness}
-              />
-            </G>
-          ) : null}
-        </Svg>
-
-        <View style={styles.center}>
-          {typeof centerContent === 'function' ? (
-            centerContent(centerRenderProps)
-          ) : centerContent ? (
-            centerContent
-          ) : (
-            <>
-              <Text style={[styles.label, { color: colors.labelColor }, labelStyle]}>
-                {label}
-              </Text>
-              <Text style={[styles.progress, { color: colors.valueColor }]}>
-                {formattedProgress}
-              </Text>
-              {showValue ? (
-                <Text style={[styles.value, { color: colors.labelColor }]}>
-                  {formattedValue} / {formattedMax}
-                </Text>
-              ) : null}
-            </>
-          )}
-        </View>
-      </View>
+      {ring}
     </Pressable>
   );
 }
