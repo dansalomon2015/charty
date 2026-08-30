@@ -20,6 +20,7 @@ describe('chart themes', () => {
     expect(theme.barColor).toBe('#123456');
     expect(theme.lineColor).toBe('#123456');
     expect(theme.pointColor).toBe('#123456');
+    expect(theme.ringColor).toBe('#123456');
   });
 
   it('lets line and point colors be customized independently', () => {
@@ -30,5 +31,9 @@ describe('chart themes', () => {
 
     expect(theme.lineColor).toBe('#ABCDEF');
     expect(theme.pointColor).toBe('#FEDCBA');
+  });
+
+  it('uses a custom grid color for the progress track', () => {
+    expect(resolveTheme({ gridColor: '#654321' }).ringTrackColor).toBe('#654321');
   });
 });

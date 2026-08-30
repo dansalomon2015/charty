@@ -15,3 +15,4 @@ export {
   type LineChartProps,
   type LineChartSelectionEvent,
 } from './LineChart';
+export { ProgressRing, type ProgressRingProps } from './ProgressRing';

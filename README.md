@@ -46,6 +46,7 @@ components bundled for iOS and Android.
 - Theme, color, number, and currency customization
 - Built-in light and dark themes
 - Optional line and area gradients
+- Goal visualization with `ProgressRing`
 - Controlled single and opt-in long-press multiple selection
 - React Native CLI and Expo compatibility through `react-native-svg`
 
@@ -239,6 +240,41 @@ import { AreaChart } from '@dansalomon/charty';
 | `fillGradient` | `ChartGradient` | — | Vertical top-to-bottom fill gradient. |
 | `fillOpacity` | `number` | `0.18` | Opacity of a solid fill, clamped from 0 to 1. |
 
+## Progress ring
+
+`ProgressRing` presents one value against a goal. Values above the maximum keep
+their real formatted value while the visible ring stops at 100%:
+
+<p align="center">
+  <img src="./docs/images/charty-progress-ring.png" alt="ProgressRing showing an emergency fund at 72 percent" width="430" />
+</p>
+
+```tsx
+import { ProgressRing } from '@dansalomon/charty';
+
+<ProgressRing
+  accessibilityLabel="Emergency fund progress"
+  color="#FD7119"
+  formatValue={currency.format}
+  label="Funded"
+  max={50_000}
+  value={36_000}
+/>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `number` | — | Current non-negative value. |
+| `max` | `number` | `100` | Positive target value. |
+| `size` | `number` | `180` | Outer diameter in logical pixels. |
+| `thickness` | `number` | `16` | Track and progress stroke width. |
+| `color` | `string` | Theme value | Progress stroke color. |
+| `trackColor` | `string` | Theme value | Remaining track color. |
+| `label` | `string` | `Progress` | Short label displayed in the center. |
+| `showValue` | `boolean` | `true` | Shows the formatted value and maximum. |
+| `centerContent` | `ReactNode \| render function` | — | Replaces the default center content. |
+| `onPress` | `(value, max, progress) => void` | — | Makes the ring interactive. |
+
 ## Themes
 
 The presets are ordinary theme objects and can be extended without replacing
@@ -316,7 +352,7 @@ npm install
 npm run verify
 ```
 
-The Expo app in [`example`](./example) demonstrates all four charts with responsive
+The Expo app in [`example`](./example) demonstrates all five charts with responsive
 cards, localized currency formatting, and single or multiple controlled
 selection.
 
