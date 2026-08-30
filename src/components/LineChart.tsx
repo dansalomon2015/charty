@@ -28,6 +28,7 @@ import type {
   SharedChartProps,
 } from '../types';
 import {
+  createAreaPath,
   createLinearPath,
   defaultCartesianPadding,
   getCartesianFrame,
@@ -61,6 +62,13 @@ export interface LineChartProps extends SharedChartProps {
   onSelectionChange?: (indices: number[], event: LineChartSelectionEvent) => void;
 }
 
+export interface CartesianLineChartProps extends LineChartProps {
+  areaFill?: boolean;
+  areaFillColor?: string | undefined;
+  areaFillGradient?: ChartGradient | undefined;
+  areaFillOpacity?: number | undefined;
+}
+
 const PADDING = defaultCartesianPadding;
 
 function clampOpacity(value: number | undefined, fallback: number) {
@@ -68,7 +76,7 @@ function clampOpacity(value: number | undefined, fallback: number) {
   return Math.max(0, Math.min(1, value));
 }
 
-export function LineChart({
+export function CartesianLineChart({
   data,
   width,
   height = 240,
@@ -77,6 +85,10 @@ export function LineChart({
   pointRadius = 4,
   lineColor,
   lineGradient,
+  areaFill = false,
+  areaFillColor,
+  areaFillGradient,
+  areaFillOpacity,
   referenceLine,
   selectedIndex,
   selectedIndices,
@@ -89,12 +101,13 @@ export function LineChart({
   theme,
   onPointPress,
   onSelectionChange,
-}: LineChartProps) {
+}: CartesianLineChartProps) {
   const [measuredWidth, setMeasuredWidth] = useState(0);
   const [multipleSelectionActive, setMultipleSelectionActive] = useState(false);
   const suppressNextPress = useRef(false);
   const reactId = useId();
   const gradientId = `charty-line-${reactId.replace(/:/g, '')}`;
+  const areaGradientId = `charty-area-${reactId.replace(/:/g, '')}`;
   const colors = useMemo(() => resolveTheme(theme), [theme]);
   const chartWidth = width ?? measuredWidth;
   const safeData = useMemo(
@@ -113,6 +126,7 @@ export function LineChart({
     y: getYForValue(datum.value, scaleMaximum, plotHeight, PADDING),
   }));
   const path = createLinearPath(points);
+  const areaPath = createAreaPath(points, PADDING.top + plotHeight);
   const resolvedSelectedIndices = useMemo(
     () => selectedIndices ?? (selectedIndex === undefined ? [] : [selectedIndex]),
     [selectedIndex, selectedIndices]
@@ -186,20 +200,36 @@ export function LineChart({
             style={styles.accessibilitySummary}
           />
           <Svg width={chartWidth} height={height}>
-            {lineGradient ? (
+            {lineGradient || areaFillGradient ? (
               <Defs>
-                <LinearGradient id={gradientId} x1="0%" x2="100%" y1="0%" y2="0%">
-                  <Stop
-                    offset="0%"
-                    stopColor={lineGradient.startColor}
-                    stopOpacity={clampOpacity(lineGradient.startOpacity, 1)}
-                  />
-                  <Stop
-                    offset="100%"
-                    stopColor={lineGradient.endColor}
-                    stopOpacity={clampOpacity(lineGradient.endOpacity, 1)}
-                  />
-                </LinearGradient>
+                {lineGradient ? (
+                  <LinearGradient id={gradientId} x1="0%" x2="100%" y1="0%" y2="0%">
+                    <Stop
+                      offset="0%"
+                      stopColor={lineGradient.startColor}
+                      stopOpacity={clampOpacity(lineGradient.startOpacity, 1)}
+                    />
+                    <Stop
+                      offset="100%"
+                      stopColor={lineGradient.endColor}
+                      stopOpacity={clampOpacity(lineGradient.endOpacity, 1)}
+                    />
+                  </LinearGradient>
+                ) : null}
+                {areaFillGradient ? (
+                  <LinearGradient id={areaGradientId} x1="0%" x2="0%" y1="0%" y2="100%">
+                    <Stop
+                      offset="0%"
+                      stopColor={areaFillGradient.startColor}
+                      stopOpacity={clampOpacity(areaFillGradient.startOpacity, 0.4)}
+                    />
+                    <Stop
+                      offset="100%"
+                      stopColor={areaFillGradient.endColor}
+                      stopOpacity={clampOpacity(areaFillGradient.endOpacity, 0.04)}
+                    />
+                  </LinearGradient>
+                ) : null}
               </Defs>
             ) : null}
 
@@ -227,6 +257,22 @@ export function LineChart({
                 </React.Fragment>
               );
             })}
+
+            {areaFill ? (
+              <Path
+                d={areaPath}
+                fill={
+                  areaFillGradient
+                    ? `url(#${areaGradientId})`
+                    : areaFillColor ?? resolvedLineColor
+                }
+                fillOpacity={clampOpacity(
+                  areaFillOpacity,
+                  areaFillGradient ? 1 : 0.18
+                )}
+                stroke="none"
+              />
+            ) : null}
 
             <Path
               d={path}
@@ -350,6 +396,10 @@ export function LineChart({
       ) : null}
     </View>
   );
+}
+
+export function LineChart(props: LineChartProps) {
+  return <CartesianLineChart {...props} />;
 }
 
 const styles = StyleSheet.create({

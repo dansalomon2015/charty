@@ -59,3 +59,14 @@ export function createLinearPath(points: readonly { x: number; y: number }[]) {
     .map(({ x, y }, index) => `${index === 0 ? 'M' : 'L'} ${x} ${y}`)
     .join(' ');
 }
+
+export function createAreaPath(
+  points: readonly { x: number; y: number }[],
+  baseline: number
+) {
+  const firstPoint = points[0];
+  const lastPoint = points[points.length - 1];
+  if (!firstPoint || !lastPoint) return '';
+
+  return `${createLinearPath(points)} L ${lastPoint.x} ${baseline} L ${firstPoint.x} ${baseline} Z`;
+}

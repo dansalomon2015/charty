@@ -30,7 +30,7 @@ These screenshots come from the local Expo example used to validate the same
 components bundled for iOS and Android.
 
 <p align="center">
-  <img src="./docs/images/charty-line-chart.png" alt="Charty React Native gallery with a dark gradient line chart, bar chart, and coordinated spending breakdown" width="430" />
+  <img src="./docs/images/charty-line-chart.png" alt="Charty React Native gallery with coordinated gradient line and area charts" width="430" />
 </p>
 
 | January selected | April selected |
@@ -45,7 +45,7 @@ components bundled for iOS and Android.
 - Empty and invalid data handling
 - Theme, color, number, and currency customization
 - Built-in light and dark themes
-- Optional line gradients
+- Optional line and area gradients
 - Controlled single and opt-in long-press multiple selection
 - React Native CLI and Expo compatibility through `react-native-svg`
 
@@ -93,7 +93,7 @@ export function MonthlyBudget() {
 
 ## Controlled selection
 
-`BarChart` and `LineChart` do not own the selected values. Pass
+`BarChart`, `LineChart`, and `AreaChart` do not own the selected values. Pass
 `selectedIndices` and update them from `onSelectionChange`. In the default
 `single` behavior, pressing the selected value again clears the selection:
 
@@ -209,6 +209,36 @@ theme.
 | `lineGradient` | `ChartGradient` | — | Applies a horizontal start-to-end color gradient. |
 | `referenceLine` | `ReferenceLine` | — | Adds a labelled comparison line. |
 
+## Area chart
+
+`AreaChart` extends the line-chart API with a fill below the series. Use a
+solid color or a vertical gradient while keeping the same controlled selection
+behavior:
+
+```tsx
+import { AreaChart } from '@dansalomon/charty';
+
+<AreaChart
+  accessibilityLabel="Savings balance by month"
+  data={savings}
+  fillGradient={{
+    startColor: '#5A88FF',
+    endColor: '#5A88FF',
+    startOpacity: 0.42,
+    endOpacity: 0.04,
+  }}
+  lineColor="#5A88FF"
+  onSelectionChange={setSelectedIndices}
+  selectedIndices={selectedIndices}
+/>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `fillColor` | `string` | Line color | Solid color below the line. |
+| `fillGradient` | `ChartGradient` | — | Vertical top-to-bottom fill gradient. |
+| `fillOpacity` | `number` | `0.18` | Opacity of a solid fill, clamped from 0 to 1. |
+
 ## Themes
 
 The presets are ordinary theme objects and can be extended without replacing
@@ -286,7 +316,7 @@ npm install
 npm run verify
 ```
 
-The Expo app in [`example`](./example) demonstrates all three charts with responsive
+The Expo app in [`example`](./example) demonstrates all four charts with responsive
 cards, localized currency formatting, and single or multiple controlled
 selection.
 

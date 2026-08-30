@@ -9,6 +9,8 @@ All notable changes to Charty are documented here. The project follows
 
 - Responsive and accessible `LineChart` with controlled single or multiple
   selection.
+- Responsive `AreaChart` with solid or vertical gradient fills and the same
+  controlled selection API.
 - Optional horizontal line gradients and point customization.
 - Exported light and dark theme presets through `chartThemes`,
   `lightChartTheme`, and `darkChartTheme`.

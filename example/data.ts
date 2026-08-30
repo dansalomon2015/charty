@@ -29,6 +29,15 @@ export const monthlyData = [
   { label: 'Jun', value: 34_000, breakdown: createBreakdown(34_000, [0.44, 0.24, 0.17, 0.15]) },
 ];
 
+export const savingsData = [
+  { label: 'Jan', value: 18_000 },
+  { label: 'Feb', value: 21_500 },
+  { label: 'Mar', value: 27_000 },
+  { label: 'Apr', value: 31_500 },
+  { label: 'May', value: 36_000 },
+  { label: 'Jun', value: 42_000 },
+];
+
 export function resolveSelectionIndices(indices: readonly number[]) {
   return indices.length > 0 ? indices : monthlyData.map((_, index) => index);
 }

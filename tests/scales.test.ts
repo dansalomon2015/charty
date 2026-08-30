@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createAreaPath,
   createLinearPath,
   getCartesianFrame,
   getXForPoint,
@@ -58,5 +59,19 @@ describe('cartesian coordinates', () => {
         { x: 252, y: 18 },
       ])
     ).toBe('M 52 218 L 152 118 L 252 18');
+  });
+
+  it('closes an area path against its baseline', () => {
+    expect(
+      createAreaPath(
+        [
+          { x: 52, y: 218 },
+          { x: 152, y: 118 },
+          { x: 252, y: 18 },
+        ],
+        218
+      )
+    ).toBe('M 52 218 L 152 118 L 252 18 L 252 218 L 52 218 Z');
+    expect(createAreaPath([], 218)).toBe('');
   });
 });
